@@ -32,7 +32,7 @@ class Elevator(object):
     
     
     def call(self):
-        if self._state = Elevator.IDLE:
+        if self._state == Elevator.IDLE:
             self._state = Elevator.HOMEBOUND
             self._floor_q.append(1)
             self._eta_q.append(self.transit_time(1))
@@ -41,7 +41,7 @@ class Elevator(object):
             return False
         
     def send(self, floor):
-        if self._state = Elevator.READY:
+        if self._state == Elevator.READY:
             self._state = Elevator.IN_TRANSIT
             self._floor_q.append(floor)
             self._eta_q.append(self.transit_time(floor))
