@@ -31,4 +31,10 @@ class Employee(object):
         
     def getFloor(self):
         return self._floor
+    
+    def getArrivalTime(self):
+        return self._in_foyer
+    
+    def getWaitingTime(self):
+        return self._on_lift - self._in_foyer
         

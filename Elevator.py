@@ -19,7 +19,7 @@ class Elevator(object):
 
     EMPLOYEE_LIMIT = 1
 
-    def __init__(self, lid):
+    def __init__(self, lid, verbose=False):
         '''
         Constructor
         '''
@@ -30,6 +30,7 @@ class Elevator(object):
         self._eta_q = [0]
         self._time = -1
         self._id = lid
+        self._verbose = verbose
         
     def get_id(self):
         return self._id
@@ -71,7 +72,8 @@ class Elevator(object):
             self._employees.append(employee)
             self._eta_q.append(self.transit_time(floor))
             assert len(self._employees) <= Elevator.EMPLOYEE_LIMIT
-            print("Lift %d send employee to floor %d eta: %d" % (self._id, floor, self._eta_q[0]))
+            if self._verbose:
+                print("Lift %d send employee to floor %d eta: %d" % (self._id, floor, self._eta_q[0]))
             return True
         else:
             return False
@@ -91,10 +93,11 @@ class Elevator(object):
         if floor == 1:
             t = randint(10, 20)
         else:
-            for i in range(0, floor-self._current_floor):
+            for _ in range(0, floor-self._current_floor):
                 t += randint(5,10)
-
-        print("Current floor:%d, Next floor:%d, Transit time: %d, eta: %d" % 
-              (self._current_floor, floor, t, self._tick + t))
+                
+        if self._verbose:
+            print("Current floor:%d, Next floor:%d, Transit time: %d, eta: %d" % 
+                  (self._current_floor, floor, t, self._tick + t))
 
         return self._tick + t
