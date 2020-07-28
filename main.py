@@ -34,27 +34,50 @@ def main():
                  {"floor": 12, "agency": Agencies.EC, "employees": 133},
                  {"floor": 13, "agency": Agencies.EC, "employees": 100}]
     
-    event = Event(start_date, end_date, floorplan)
     
-    event.run()
+    dfqs = []
+    dfls = []
+    dfes = []
     
+    # generate 1000 runs:
+    for r in range(1,1001):
+        event = Event(start_date, end_date, floorplan, r)
     
-    dfq = event.get_queue_stats() 
+        event.run()
+    
+        dfq = event.get_queue_stats() 
+        dfqs.append(dfq)
+
+        dfe = event.get_employee_stats()
+        dfes.append(dfe)
+    
+        dfl = event.get_lift_stats()
+        dfls.append(dfl)
+    
+    dfl = pd.concat(dfls)    
+    #for i in range(1,9):
+    #    dfl.plot(x="ticks", y="lift_%d" % i)
+    #    plt.savefig("/tmp/lift_%d.png" % i)
+    
+        
+    dfq = pd.concat(dfqs)
     print("Overall queue stats:")
     print(dfq.describe())
 
-    dfq.plot(x="ticks", y="length")
+    print("First hour:")
+    print(dfq[dfq["ticks"]<3600].describe())
     
-    plt.savefig("/tmp/queue_length.png")
+    print("Second hour:")
+    print(dfq[(dfq["ticks"]>3600) & (dfq["ticks"]<7200)].describe())
+  
+    print("Third hour:")
+    print(dfq[dfq["ticks"]>7200].describe())
+
+    #dfq.plot(x="ticks", y="length")
     
-    dfl = event.get_lift_stats()
-    for i in range(1,9):
-        dfl.plot(x="ticks", y="lift_%d" % i)
+    #plt.savefig("/tmp/queue_length.png")
     
-        plt.savefig("/tmp/lift_%d.png" % i)
-    
-    dfe = event.get_employee_stats()
-    
+    dfe = pd.concat(dfes)
     print("Overall Employee stats:")
     print(dfe.describe())
     
