@@ -33,24 +33,30 @@ class Event(object):
         self._destination = []
         
     def run(self):
-        employee_pool = EmployeePool(self._floorplan)
+        employee_pool = EmployeePool(self._floorplan, verbose=self._verbose)
         foyer = Foyer()
     
         elevators = []
         for i in range(1, 9):
             self._lift_tracker["lift_%d" % i] = []
-            elevators.append(Elevator(i))
+            elevators.append(Elevator(i, verbose=self._verbose))
+        
+        def employees_on_lifts():
+            return sum([i.count_employees() for i in elevators])
         
         # Now starts the main loop
+        # TODO: let the Randomizer provide employees
         r = Randomizer(self._seconds, employee_pool.count_employees())
     
         print("Run #%.3d Allocating %d employees over %d seconds" % (self._run_number, employee_pool.count_employees(), self._seconds))
     
-        
-        for tick in range(0, self._seconds):
+        tick = 0
+        # don't stop until all employees are at work
+        while employee_pool.count_employees() + employees_on_lifts() > 0:
+            tick += 1
             
-            if self._verbose:
-                print("Tick #%d" % tick)
+            #if self._verbose:
+            #    print("Tick #%d" % tick)
             
             self._queue_length["ticks"].append(tick)
             self._queue_length["length"].append(foyer.get_queue_len())
@@ -74,6 +80,8 @@ class Event(object):
                 # if there are employees waiting and lifts ready, send a new employee
                 if lift.get_state() == Elevator.READY:
                     if foyer.get_queue_len() > 0:
+                        if self._verbose:
+                            print("In queue: %s" % foyer.get_queue_ids())
                         emp = foyer.release()
                         lift.send(emp)
                         
@@ -92,21 +100,28 @@ class Event(object):
     def get_queue_stats(self):
         dfq = pd.DataFrame(self._queue_length)
         dfq["run"] = self._run_number
+        dfq["hour"]=dfq["ticks"]//3600+1 
         return dfq
     
     def get_lift_stats(self):
         dfl = pd.DataFrame(self._lift_tracker)
         dfl["run"] = self._run_number
+        dfl["hour"]=dfl["ticks"]//3600+1 
         return dfl
     
     def get_employee_stats(self):
-        data_dct = {"arrival": [], "waiting_time": []}
+        data_dct = {"id": [], "arrival": [], "waiting_time": [], "lift": [], "place": [], "floor": []}
         for e in self._destination:
+            data_dct["id"].append(e.getId())
             data_dct["arrival"].append(e.getArrivalTime())
             data_dct["waiting_time"].append(e.getWaitingTime())
+            data_dct["lift"].append(e.getLift())
+            data_dct["place"].append(e.getPlaceInQ())
+            data_dct["floor"].append(e.getFloor())
         dfe = pd.DataFrame(data_dct)
         dfe["run"] = self._run_number
-        return dfe
+        dfe["hour"]=dfe["arrival"]//3600+1 
+        return dfe.sort_values(by=["arrival"])
         
     
     

@@ -23,12 +23,13 @@ class Randomizer(object):
         random.seed(time.time())
         
     def updateProb(self):
-        try:
+        # if timespan is zero, set probability to 1 to flush employee queue
+        if self._timespan <= 0:
+            self._prob_sec = 1
+        else:
             self._prob_sec = 1.*self._employees/self._timespan
-        except:
-            # if timespan is zero, we reached the end anyway
-            pass
-        
+
+                   
     def get_arrival(self):
         
         # double the arrival rate between 7:30 and 8:30
@@ -37,8 +38,8 @@ class Randomizer(object):
         else:
             k_fac = 1
         
-        # check if time is up or no employees left
-        if self._employees == 0 or self._timespan == 0:
+        # check if no employees left
+        if self._employees == 0:
             return False
         
         if random.random() < self._prob_sec * k_fac:

@@ -5,6 +5,7 @@ Created on 21-Jul-2020
 '''
 
 from Employee import Employee
+from collections import deque
 import random
 import time
 
@@ -14,24 +15,29 @@ class EmployeePool(object):
     '''
 
 
-    def __init__(self, floorplan):
+    def __init__(self, floorplan, verbose=False):
         '''
         Constructor
         '''
-        self._employees = []
+        self._employees = deque([])
+        self._verbose = verbose
         for f in floorplan:
             this_floor = f["floor"]
             this_agency = f["agency"]
-            for e in range(0, f["employees"]):
-                new_employee = Employee(this_agency, this_floor)
+            for _ in range(0, f["employees"]):
+                new_employee = Employee(self.count_employees(), this_agency, this_floor, self._verbose)
                 self._employees.append(new_employee) 
+        
+        self._seed = time.time()
+        if self._verbose:
+            print("Employee pool random seed: %d" % self._seed)
                 
-        random.seed(time.time())
+        random.seed(self._seed)
         random.shuffle(self._employees)
         
     def get_employee(self):
         try:
-            return self._employees.pop()
+            return self._employees.popleft()
         except:
             return None
                

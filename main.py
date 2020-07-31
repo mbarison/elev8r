@@ -4,10 +4,6 @@ Created on 21-Jul-2020
 @author: mbarison
 '''
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
 from datetime import datetime
 
 import pandas as pd
@@ -20,28 +16,14 @@ from Event import Event
 class Agencies(Enum):
     EC = 0
 
-def main():
-    # Initialization
-    
-    start_date = datetime(2020, 9, 1, 6, 30)
-    end_date = datetime(2020, 9, 1, 9, 30)
-
-    
-    # floorplan
-    floorplan = [{"floor": 9,  "agency": Agencies.EC, "employees": 140},
-                 {"floor": 10, "agency": Agencies.EC, "employees": 119},
-                 {"floor": 11, "agency": Agencies.EC, "employees": 122},
-                 {"floor": 12, "agency": Agencies.EC, "employees": 133},
-                 {"floor": 13, "agency": Agencies.EC, "employees": 100}]
-    
+def main(start_date, end_date, floorplan, n_runs, verbose=False):
     
     dfqs = []
     dfls = []
     dfes = []
     
-    # generate 1000 runs:
-    for r in range(1,1001):
-        event = Event(start_date, end_date, floorplan, r)
+    for r in range(1, n_runs+1):
+        event = Event(start_date, end_date, floorplan, r, verbose=verbose)
     
         event.run()
     
@@ -55,41 +37,23 @@ def main():
         dfls.append(dfl)
     
     dfl = pd.concat(dfls)    
-    #for i in range(1,9):
-    #    dfl.plot(x="ticks", y="lift_%d" % i)
-    #    plt.savefig("/tmp/lift_%d.png" % i)
+    dfl.to_csv("/tmp/lift_stats.csv", index=False)
     
-        
     dfq = pd.concat(dfqs)
-    print("Overall queue stats:")
-    print(dfq.describe())
-
-    print("First hour:")
-    print(dfq[dfq["ticks"]<3600].describe())
-    
-    print("Second hour:")
-    print(dfq[(dfq["ticks"]>3600) & (dfq["ticks"]<7200)].describe())
-  
-    print("Third hour:")
-    print(dfq[dfq["ticks"]>7200].describe())
-
-    #dfq.plot(x="ticks", y="length")
-    
-    #plt.savefig("/tmp/queue_length.png")
-    
+    dfq.to_csv("/tmp/queue_stats.csv", index=False)
+ 
     dfe = pd.concat(dfes)
-    print("Overall Employee stats:")
-    print(dfe.describe())
-    
-    print("First hour:")
-    print(dfe[dfe["arrival"]<3600].describe())
-    
-    print("Second hour:")
-    print(dfe[(dfe["arrival"]>3600) & (dfe["arrival"]<7200)].describe())
-  
-    print("Third hour:")
-    print(dfe[dfe["arrival"]>7200].describe())
-    
+    dfe.to_csv("/tmp/employee_stats.csv", index=False)    
 
 if __name__ == '__main__':
-    main()
+    
+    start_date = datetime(2020, 9, 1, 6, 30)
+    end_date = datetime(2020, 9, 1, 9, 30)
+
+    floorplan = [{"floor": 9,  "agency": Agencies.EC, "employees": 140},
+                 {"floor": 10, "agency": Agencies.EC, "employees": 119},
+                 {"floor": 11, "agency": Agencies.EC, "employees": 122},
+                 {"floor": 12, "agency": Agencies.EC, "employees": 133},
+                 {"floor": 13, "agency": Agencies.EC, "employees": 100}]
+    
+    main(start_date, end_date, floorplan, 1000, False)

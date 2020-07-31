@@ -5,6 +5,7 @@ Created on 18-Jul-2020
 '''
 
 from random import randint
+from collections import deque
 
 class Elevator(object):
     '''
@@ -24,10 +25,10 @@ class Elevator(object):
         Constructor
         '''
         self._state = Elevator.READY
-        self._employees = []
-        self._floor_q = [1]
+        self._employees = deque([])
+        self._floor_q = deque([1])
         self._current_floor = 1
-        self._eta_q = [0]
+        self._eta_q = deque([0])
         self._time = -1
         self._id = lid
         self._verbose = verbose
@@ -46,8 +47,8 @@ class Elevator(object):
         
         # check if a change of state is needed
         if len(self._eta_q) > 0  and self._tick >= self._eta_q[0]:
-            self._eta_q.pop()
-            self._current_floor = self._floor_q.pop()
+            self._eta_q.popleft()
+            self._current_floor = self._floor_q.popleft()
             
             if self._state == Elevator.IN_TRANSIT:
                 self._state = Elevator.IDLE
@@ -68,19 +69,22 @@ class Elevator(object):
             floor = employee.getFloor()
             self._state = Elevator.IN_TRANSIT
             self._floor_q.append(floor)
-            employee.onLift(self._tick)
+            employee.onLift(self._tick, self._id)
             self._employees.append(employee)
             self._eta_q.append(self.transit_time(floor))
             assert len(self._employees) <= Elevator.EMPLOYEE_LIMIT
             if self._verbose:
-                print("Lift %d send employee to floor %d eta: %d" % (self._id, floor, self._eta_q[0]))
+                print("Lift %d send Employee #%0.4d to floor %d eta: %d" % (self._id, employee.getId(), floor, self._eta_q[0]))
             return True
         else:
             return False
         
     def get_employee(self):
         try:
-            return self._employees.pop()
+            e = self._employees.popleft()
+            if self._verbose:
+                print("Lift %d Employee #%0.4d arrived at floor %d tick: %d" % (self._id, e.getId(), self._current_floor, self._tick))
+            return e
         except:
             return None
         
@@ -96,8 +100,8 @@ class Elevator(object):
             for _ in range(0, floor-self._current_floor):
                 t += randint(5,10)
                 
-        if self._verbose:
-            print("Current floor:%d, Next floor:%d, Transit time: %d, eta: %d" % 
-                  (self._current_floor, floor, t, self._tick + t))
+        #if self._verbose:
+        #    print("Lift %d Current floor:%d, Next floor:%d, Transit time: %d, eta: %d" % 
+        #          (self._id, self._current_floor, floor, t, self._tick + t))
 
         return self._tick + t
