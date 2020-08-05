@@ -51,6 +51,7 @@ class Event(object):
         print("Run #%.3d Allocating %d employees over %d seconds" % (self._run_number, employee_pool.count_employees(), self._seconds))
     
         tick = 0
+        last_q_len = -1
         # don't stop until all employees are at work
         while employee_pool.count_employees() + employees_on_lifts() > 0:
             tick += 1
@@ -58,8 +59,11 @@ class Event(object):
             #if self._verbose:
             #    print("Tick #%d" % tick)
             
-            self._queue_length["ticks"].append(tick)
-            self._queue_length["length"].append(foyer.get_queue_len())
+            # store data only if there was a state change
+            if foyer.get_queue_len() != last_q_len:
+                self._queue_length["ticks"].append(tick)
+                self._queue_length["length"].append(foyer.get_queue_len())
+                last_q_len = foyer.get_queue_len()
             
             self._lift_tracker["ticks"].append(tick)
         
