@@ -58,3 +58,6 @@ class Employee(object):
     
     def getId(self):
         return self._id
+
+    def getAffiliation(self):
+        return self._affiliation.value

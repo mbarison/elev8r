@@ -4,26 +4,33 @@ Created on 21-Jul-2020
 @author: mbarison
 '''
 
-from datetime import datetime
-
 import pandas as pd
 
-from enum import Enum
-
+from datetime import datetime
 from Event import Event
 
-# affiliations
-class Agencies(Enum):
-    EC = 0
 
-def main(start_date, end_date, floorplan, n_runs, verbose=False):
-    
+def main(config):
+
+    start_date = config["start_date"]
+    end_date   = config["end_date"]
+    floorplan  = config["floorplan"]
+    n_runs     = config["runs"]
+    elevators  = config["elevators"]
+    verbose    = config.get("verbose", False)
+    qstat_f    = config["qstats_f"]
+    estat_f    = config["estats_f"]
+
+    print("Starting %d Runs, %d elevators" % (n_runs, elevators))
+
+    t0 = datetime.now()
+
     dfqs = []
     dfls = []
     dfes = []
     
     for r in range(1, n_runs+1):
-        event = Event(start_date, end_date, floorplan, r, verbose=verbose)
+        event = Event(start_date, end_date, floorplan, elevators, r, verbose=verbose)
     
         event.run()
     
@@ -36,24 +43,17 @@ def main(start_date, end_date, floorplan, n_runs, verbose=False):
         dfl = event.get_lift_stats()
         dfls.append(dfl)
     
-    dfl = pd.concat(dfls)    
-    dfl.to_csv("/tmp/lift_stats.csv", index=False)
+    print("%d Runs completed in %s" % (n_runs, str(datetime.now()-t0)))
+
+    #dfl = pd.concat(dfls)    
+    #dfl.to_csv(LIFT_STATS_FILE, index=False)
     
     dfq = pd.concat(dfqs)
-    dfq.to_csv("/tmp/queue_stats.csv", index=False)
+    dfq.to_csv(qstat_f, index=False)
  
     dfe = pd.concat(dfes)
-    dfe.to_csv("/tmp/employee_stats.csv", index=False)    
+    dfe.to_csv(estat_f, index=False)    
 
-if __name__ == '__main__':
-    
-    start_date = datetime(2020, 9, 1, 6, 30)
-    end_date = datetime(2020, 9, 1, 9, 30)
-
-    floorplan = [{"floor": 9,  "agency": Agencies.EC, "employees": 140},
-                 {"floor": 10, "agency": Agencies.EC, "employees": 119},
-                 {"floor": 11, "agency": Agencies.EC, "employees": 122},
-                 {"floor": 12, "agency": Agencies.EC, "employees": 133},
-                 {"floor": 13, "agency": Agencies.EC, "employees": 100}]
-    
-    main(start_date, end_date, floorplan, 1000, False)
+if __name__ == '__main__':    
+    from base_params import config
+    main(config)

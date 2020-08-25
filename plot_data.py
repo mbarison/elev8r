@@ -11,14 +11,21 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from datetime import datetime, timedelta
+import os
+from Agencies import *
 
-def plot_data():
-    
-    sd = datetime(2020, 9, 1, 6, 30)
-    
+def plot_data(config):
+        
+    start_date = config["start_date"]
+    tempdir    = config["tempdir"]
+    verbose    = config.get("verbose", False)
+    qstat_f    = config["qstats_f"]
+    estat_f    = config["estats_f"]
+
+
     # Queue stats
-    dfq = pd.read_csv("/tmp/queue_stats.csv")
-    dfq["time"] = pd.Series([sd+timedelta(seconds=i) for i in dfq["ticks"]])
+    dfq = pd.read_csv(qstat_f)
+    dfq["time"] = pd.Series([start_date+timedelta(seconds=i) for i in dfq["ticks"]])
     print("Overall queue stats:")
     print(dfq.describe())
 
@@ -38,11 +45,12 @@ def plot_data():
     dfq[dfq["run"]==3].plot(x="time", y="length", ax=ax, legend=False)
     dfq[dfq["run"]==4].plot(x="time", y="length", ax=ax, legend=False)
     dfq[dfq["run"]==10].plot(x="time", y="length", ax=ax, legend=False)
-    plt.savefig("/tmp/queue_length.png")
+    plt.savefig(os.path.join(tempdir, "queue_length.png"))
 
     # Employee stats
-    dfe = pd.read_csv("/tmp/employee_stats.csv")
-    dfe = dfe[["run", "arrival", "place", "waiting_time", "hour"]]   
+    dfe = pd.read_csv(estat_f)
+    dfe = dfe[["run", "agency", "arrival", "place", "waiting_time", "hour"]]   
+    dfe = dfe[dfe["agency"]==Agencies.EC.value]
     
     print("Single morning stats:")
     df_sm = dfe[dfe["run"]==4]

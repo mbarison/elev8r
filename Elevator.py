@@ -94,11 +94,8 @@ class Elevator(object):
     def transit_time(self, floor):
         t = 0
         
-        if floor == 1:
-            t = randint(10, 20)
-        else:
-            for _ in range(0, floor-self._current_floor):
-                t += randint(5,10)
+        for _ in range(0, abs(floor-self._current_floor)):
+            t += randint(5,10)
                 
         #if self._verbose:
         #    print("Lift %d Current floor:%d, Next floor:%d, Transit time: %d, eta: %d" % 

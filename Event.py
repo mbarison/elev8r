@@ -18,7 +18,7 @@ class Event(object):
     '''
 
 
-    def __init__(self, start_date, end_date, floorplan, run_number=0, verbose=False):
+    def __init__(self, start_date, end_date, floorplan, elevators=8, run_number=0, verbose=False):
         '''
         Constructor
         '''
@@ -26,6 +26,7 @@ class Event(object):
         self._end_date = end_date
         self._floorplan = floorplan
         self._run_number = run_number
+        self._n_elevators = elevators
         self._verbose = verbose
         self._seconds = (self._end_date - self._start_date).seconds
         self._queue_length = {"ticks": [], "length": []}
@@ -37,7 +38,7 @@ class Event(object):
         foyer = Foyer()
     
         elevators = []
-        for i in range(1, 9):
+        for i in range(1, self._n_elevators+1):
             self._lift_tracker["lift_%d" % i] = []
             elevators.append(Elevator(i, verbose=self._verbose))
         
@@ -114,9 +115,10 @@ class Event(object):
         return dfl
     
     def get_employee_stats(self):
-        data_dct = {"id": [], "arrival": [], "waiting_time": [], "lift": [], "place": [], "floor": []}
+        data_dct = {"id": [], "agency": [], "arrival": [], "waiting_time": [], "lift": [], "place": [], "floor": []}
         for e in self._destination:
             data_dct["id"].append(e.getId())
+            data_dct["agency"].append(e.getAffiliation())
             data_dct["arrival"].append(e.getArrivalTime())
             data_dct["waiting_time"].append(e.getWaitingTime())
             data_dct["lift"].append(e.getLift())
