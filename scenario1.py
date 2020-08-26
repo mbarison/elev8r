@@ -3,6 +3,7 @@ Created on 25-Aug-2020
 
 @author: mbarison
 
+
 Scenario 1: 
     Simulate 199 staff going to floors 9-13 and 232 staff going to floors 2-8
     It can be more-or-less an even breakdown between the floors. 
