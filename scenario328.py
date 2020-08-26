@@ -1,9 +1,14 @@
 '''
-Created on 24-Aug-2020
+Created on 26-Aug-2020
 
 @author: mbarison
 
-Set basic parameters
+
+Scenario 3: 
+    Simulate 372 staff going to floors 9-13 and 435 staff going to floors 2-8
+    It can be more-or-less an even breakdown between the floors. 
+    2 persons per lobby.
+    8 elevators.
 
 '''
 
@@ -14,7 +19,10 @@ from datetime import datetime
 from Agencies import *
 
 # Temp directory (OS dependent)
-tempdir = tempfile.gettempdir()
+tempdir = os.path.join(tempfile.gettempdir(), "Scenario_1_8_8")
+
+if not os.path.exists(tempdir):
+    os.mkdir(tempdir)
 
 config = {"tempdir": tempdir}
 
@@ -28,20 +36,18 @@ config["start_date"] = datetime(2020, 9, 1, 6, 30)
 config["end_date"] = datetime(2020, 9, 1, 9, 30)
 
 # Number of repetitions
-config["runs"] = 1
+config["runs"] = 1000
 
 # Floor plan
-config["floorplan"] = [{"floor": 9,  "agency": Agencies.EC, "employees": 140},
-                       {"floor": 10, "agency": Agencies.EC, "employees": 119},
-                       {"floor": 11, "agency": Agencies.EC, "employees": 122},
-                       {"floor": 12, "agency": Agencies.EC, "employees": 133},
-                       {"floor": 13, "agency": Agencies.EC, "employees": 100}]
+from floorplan_scenario_3 import floorplan_3
+
+config["floorplan"] = floorplan_3
 
 # Number of elevators
 config["elevators"] = 8
 
-# Verbosity
-config["verbose"] = True
-
 # Pen size
-config["pen_size"] = 8
+config["pen_size"] = 2
+
+# Verbosity
+config["verbose"] = False

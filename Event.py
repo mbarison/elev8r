@@ -18,7 +18,7 @@ class Event(object):
     '''
 
 
-    def __init__(self, start_date, end_date, floorplan, elevators=8, run_number=0, verbose=False):
+    def __init__(self, start_date, end_date, floorplan, elevators=8, run_number=0, pen_max=8, verbose=False):
         '''
         Constructor
         '''
@@ -27,6 +27,7 @@ class Event(object):
         self._floorplan = floorplan
         self._run_number = run_number
         self._n_elevators = elevators
+        self._pen_max = pen_max
         self._verbose = verbose
         self._seconds = (self._end_date - self._start_date).seconds
         self._queue_length = {"ticks": [], "length": []}
@@ -35,7 +36,7 @@ class Event(object):
         
     def run(self):
         employee_pool = EmployeePool(self._floorplan, verbose=self._verbose)
-        foyer = Foyer()
+        foyer = Foyer(self._pen_max)
     
         elevators = []
         for i in range(1, self._n_elevators+1):
@@ -57,8 +58,8 @@ class Event(object):
         while employee_pool.count_employees() + employees_on_lifts() > 0:
             tick += 1
             
-            #if self._verbose:
-            #    print("Tick #%d" % tick)
+            if self._verbose:
+                print("Tick #%d" % tick)
             
             # store data only if there was a state change
             if foyer.get_queue_len() != last_q_len:
@@ -68,6 +69,8 @@ class Event(object):
             
             self._lift_tracker["ticks"].append(tick)
         
+            foyer.update_tick(tick)
+
             # check if there is a new arrival
             if r.get_arrival():
                 
@@ -75,6 +78,9 @@ class Event(object):
                 emp = employee_pool.get_employee()
                 foyer.accept(emp, tick)
             
+            if self._verbose:
+                print("In queue: %s ; In pen: %s" % (foyer.get_queue_ids(), foyer.get_pen_ids()))
+
             for lift in elevators:
                 # send tick
                 lift.update_tick(tick)
@@ -84,11 +90,10 @@ class Event(object):
                 
                 # if there are employees waiting and lifts ready, send a new employee
                 if lift.get_state() == Elevator.READY:
-                    if foyer.get_queue_len() > 0:
-                        if self._verbose:
-                            print("In queue: %s" % foyer.get_queue_ids())
+                    if foyer.get_pen_len() > 0:
                         emp = foyer.release()
-                        lift.send(emp)
+                        if emp:
+                            lift.send(emp)
                         
                 # empty idle lifts
                 if lift.get_state() == Elevator.IDLE:
@@ -98,7 +103,8 @@ class Event(object):
                         self._destination.append(emp)
                         
                     # if there's employees waiting, call lift
-                    if foyer.get_queue_len() > 0:
+                    # TODO: do not call too many lifts
+                    if foyer.get_pen_len() > 0:
                         lift.call()
                         
                         

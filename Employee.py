@@ -18,6 +18,7 @@ class Employee(object):
         self._affiliation = affiliation
         self._floor = floor
         self._in_foyer = -1
+        self._in_pen = -1
         self._on_lift = -1
         self._at_work = -1
         self._used_lift = -1
@@ -29,7 +30,12 @@ class Employee(object):
         self._q_pos = q_pos
         if self._verbose:
             print("Employee #%0.4d arrived in Foyer pos: %2d at tick: %d" % (self._id, self._q_pos, self._in_foyer))
-        
+  
+    def inPen(self, tick):
+        self._in_pen = tick
+        if self._verbose:
+            print("Employee #%0.4d arrived in Pen at tick: %d" % (self._id, self._in_pen))
+
     def onLift(self, tick, lid):
         self._on_lift = tick
         self._used_lift = lid
@@ -47,6 +53,12 @@ class Employee(object):
     def getArrivalTime(self):
         return self._in_foyer
     
+    def getQueueTime(self):
+        return self._in_pen - self._in_foyer
+
+    def getPenTime(self):
+        return self._on_lift - self._in_pen
+
     def getWaitingTime(self):
         return self._on_lift - self._in_foyer
     

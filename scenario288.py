@@ -1,13 +1,12 @@
 '''
-Created on 25-Aug-2020
+Created on 26-Aug-2020
 
 @author: mbarison
 
-
-Scenario 1: 
-    Simulate 199 staff going to floors 9-13 and 232 staff going to floors 2-8
+Scenario 2: 
+    Simulate 248 staff going to floors 9-13 and 290 staff going to floors 2-8
     It can be more-or-less an even breakdown between the floors. 
-    2 persons per lobby.
+    8 persons per lobby.
     8 elevators.
 
 '''
@@ -16,10 +15,8 @@ import tempfile, os
 
 from datetime import datetime
 
-from Agencies import *
-
 # Temp directory (OS dependent)
-tempdir = os.path.join(tempfile.gettempdir(), "Scenario_1")
+tempdir = os.path.join(tempfile.gettempdir(), "Scenario_2_2_8")
 
 if not os.path.exists(tempdir):
     os.mkdir(tempdir)
@@ -39,19 +36,15 @@ config["end_date"] = datetime(2020, 9, 1, 9, 30)
 config["runs"] = 1000
 
 # Floor plan
-floorplan = [{"floor": 9,  "agency": Agencies.EC, "employees": 39},
-             {"floor": 10, "agency": Agencies.EC, "employees": 40},
-             {"floor": 11, "agency": Agencies.EC, "employees": 40},
-             {"floor": 12, "agency": Agencies.EC, "employees": 40},
-             {"floor": 13, "agency": Agencies.EC, "employees": 40}]
+from floorplan_scenario_2 import floorplan_2
 
-for i in range(2,9):
-    floorplan.append({"floor": i, "agency": Agencies.Other, "employees": 29})
-
-config["floorplan"] = floorplan
+config["floorplan"] = floorplan_2
 
 # Number of elevators
 config["elevators"] = 8
+
+# Pen size
+config["pen_size"] = 8
 
 # Verbosity
 config["verbose"] = False

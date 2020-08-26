@@ -20,8 +20,9 @@ def main(config):
     verbose    = config.get("verbose", False)
     qstat_f    = config["qstats_f"]
     estat_f    = config["estats_f"]
+    pen_size   = config["pen_size"]
 
-    print("Starting %d Runs, %d elevators" % (n_runs, elevators))
+    print("Starting %d Runs, %d elevators, pen size: %d" % (n_runs, elevators, pen_size))
 
     t0 = datetime.now()
 
@@ -30,7 +31,7 @@ def main(config):
     dfes = []
     
     for r in range(1, n_runs+1):
-        event = Event(start_date, end_date, floorplan, elevators, r, verbose=verbose)
+        event = Event(start_date, end_date, floorplan, elevators, r, pen_size, verbose=verbose)
     
         event.run()
     
