@@ -8,6 +8,14 @@ Fit Erlang distribution (k=1, exponential) to time arrival data
 
 '''
 
+import numpy as np
+import pandas as pd
+from scipy.optimize import curve_fit
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 def erlang_fit(df, nbins=50):
 
     tmp=[]
@@ -24,9 +32,7 @@ def erlang_fit(df, nbins=50):
 
     #print("Diff points=%d" % len(dfp))
 
-    ax = plt.gca()
-    ax.set_yscale('log')
-    bin_heights, bin_borders, _ = plt.hist(dfp, bins=nbins)
+    bin_heights, bin_borders, _ = plt.hist(dfp, bins=nbins, density=True)
     
     bin_centers = bin_borders[:-1] + np.diff(bin_borders) / 2
     
@@ -51,4 +57,9 @@ def erlang_fit(df, nbins=50):
     x_interval_for_fit = np.linspace(bin_borders[0], bin_borders[-1], 10000)
 
     plt.plot(x_interval_for_fit, erlang(x_interval_for_fit, *popt), label='fit', c='red')
+
+    xpos = plt.gca().get_xlim()[1]/3
+    ypos = bin_heights[0]*.8
+
+    plt.text(xpos, ypos, "lambda=%.3g\u00b1%.3g R-squared=%.3g" % (popt[0], perr[0], r_squared))
     
