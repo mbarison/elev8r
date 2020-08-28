@@ -7,8 +7,8 @@ Created on 28-Jul-2020
 from Randomizer import Randomizer
 from datetime import datetime, timedelta
 from EmployeePool import EmployeePool
-from Elevator import Elevator
 from Foyer import Foyer
+from LiftTracker import LiftTracker
 
 import pandas as pd
 
@@ -31,20 +31,12 @@ class Event(object):
         self._verbose = verbose
         self._seconds = (self._end_date - self._start_date).seconds
         self._queue_length = {"ticks": [], "length": []}
-        self._lift_tracker = {"ticks": []}
         self._destination = []
         
     def run(self):
         employee_pool = EmployeePool(self._floorplan, verbose=self._verbose)
-        foyer = Foyer(self._pen_max)
-    
-        elevators = []
-        for i in range(1, self._n_elevators+1):
-            self._lift_tracker["lift_%d" % i] = []
-            elevators.append(Elevator(i, verbose=self._verbose))
-        
-        def employees_on_lifts():
-            return sum([i.count_employees() for i in elevators])
+        foyer = Foyer(self._pen_max)   
+        lift_tracker = LiftTracker(elevators=self._n_elevators, verbose=self._verbose) 
         
         # Now starts the main loop
         # TODO: let the Randomizer provide employees
@@ -55,7 +47,7 @@ class Event(object):
         tick = 0
         last_q_len = -1
         # don't stop until all employees are at work
-        while employee_pool.count_employees() + employees_on_lifts() > 0:
+        while employee_pool.count_employees() + lift_tracker.employees_on_lifts() > 0:
             tick += 1
             
             if self._verbose:
@@ -67,7 +59,7 @@ class Event(object):
                 self._queue_length["length"].append(foyer.get_queue_len())
                 last_q_len = foyer.get_queue_len()
             
-            self._lift_tracker["ticks"].append(tick)
+            
         
             foyer.update_tick(tick)
 
@@ -81,31 +73,25 @@ class Event(object):
             if self._verbose:
                 print("In queue: %s ; In pen: %s" % (foyer.get_queue_ids(), foyer.get_pen_ids()))
 
-            for lift in elevators:
-                # send tick
-                lift.update_tick(tick)
-                
-                self._lift_tracker["lift_%d" % lift.get_id()].append(lift.get_state())
-                
-                
-                # if there are employees waiting and lifts ready, send a new employee
-                if lift.get_state() == Elevator.READY:
-                    if foyer.get_pen_len() > 0:
-                        emp = foyer.release()
-                        if emp:
-                            lift.send(emp)
+            lift_tracker.update_tick(tick)
+
+            # if there are employees waiting and lifts ready, send a new employee
+            while foyer.get_pen_len() > 0 and lift_tracker.count_lifts_ready() > 0:
+                emp = foyer.release()
+                assert(emp != None)
+                assert(lift_tracker.accept_employee(emp) != False)
                         
-                # empty idle lifts
-                if lift.get_state() == Elevator.IDLE:
-                    if lift.count_employees() > 0:
-                        emp = lift.get_employee()
-                        emp.atWork(tick)
-                        self._destination.append(emp)
+            # empty idle lifts
+            while lift_tracker.count_employees_idle() > 0:
+               emp = lift_tracker.disembark_employee()
+               assert(emp != None)
+               emp.atWork(tick)
+               self._destination.append(emp)
                         
-                    # if there's employees waiting, call lift
-                    # TODO: do not call too many lifts
-                    if foyer.get_pen_len() > 0:
-                        lift.call()
+            # if there's employees waiting, call lift
+            for _ in range(0, foyer.get_pen_len()):
+                if not lift_tracker.call_lift():
+                    break
                         
                         
     def get_queue_stats(self):

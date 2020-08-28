@@ -60,6 +60,8 @@ class Elevator(object):
             self._state = Elevator.HOMEBOUND
             self._floor_q.append(1)
             self._eta_q.append(self.transit_time(1))
+            if self._verbose:
+                print("Lift %d called back to 1st floor" % self._id)
             return True
         else:
             return False
