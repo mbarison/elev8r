@@ -16,6 +16,7 @@ from Agencies import *
 
 from erlang_fit import *
 from summary_stats import *
+from lifts_stackplot import *
 
 def plot_data(config):
         
@@ -24,6 +25,7 @@ def plot_data(config):
     verbose    = config.get("verbose", False)
     qstat_f    = config["qstats_f"]
     estat_f    = config["estats_f"]
+    lstat_f    = config["lstats_f"]
 
 
     # Queue stats
@@ -137,9 +139,9 @@ def plot_data(config):
     plt.gca().set_title('Third hour')
     plt.gca().set_yscale('log') 
 
-    print("\n####################\nAveraged maximum")
-    dfm = dfe[["run", "place", "waiting_time"]].groupby(by="run").max()
-    print(dfm.describe())
+    #print("\n####################\nAveraged maximum")
+    #dfm = dfe[["run", "place", "waiting_time"]].groupby(by="run").max()
+    #print(dfm.describe())
 
     #dfq.plot(x="ticks", y="length")
     
@@ -150,7 +152,32 @@ def plot_data(config):
     #    plt.savefig("/tmp/lift_%d.png" % i)
 
     
+    # Lift stats
+    dfl = pd.read_csv(lstat_f)
+    dfl["time"] = pd.Series([start_date+timedelta(seconds=i) for i in dfl["ticks"]])
+    print("\n\n#################################\nLift stats:")
 
+    # Average over runs
+    dfl=dfl.groupby("time").mean()
+
+    plt.figure(figsize=[12,10])
+    plt.suptitle('Lift status')
+
+    plt.subplot(411)
+    lifts_stackplot(dfl)
+    plt.gca().set_title('Overall')
+
+    plt.subplot(412)
+    lifts_stackplot(dfl[dfl["hour"]==1])
+    plt.gca().set_title('First hour')
+
+    plt.subplot(413)
+    lifts_stackplot(dfl[dfl["hour"]==2])
+    plt.gca().set_title('Second hour') 
+  
+    plt.subplot(414)
+    lifts_stackplot(dfl[dfl["hour"]>2])
+    plt.gca().set_title('Third hour')
 
 if __name__ == '__main__':
     plot_data()

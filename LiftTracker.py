@@ -16,11 +16,9 @@ class LiftTracker(object):
     def __init__(self, elevators=8, verbose=False):
      
         self._elevators = []
-        self._lift_stats = {"ticks": []}
         self._verbose = verbose
 
         for i in range(1, elevators+1):
-            self._lift_stats["lift_%d" % i] = []
             self._elevators.append(Elevator(i, verbose=self._verbose))
 
     def employees_on_lifts(self):
@@ -28,13 +26,11 @@ class LiftTracker(object):
 
     def update_tick(self, tick):
 
-        self._lift_stats["ticks"].append(tick)
-
         for lift in self._elevators:
             # send tick
             lift.update_tick(tick)
-                
-            self._lift_stats["lift_%d" % lift.get_id()].append(lift.get_state())
+       
+
 
     def count_lifts(self):
         return len(self._elevators)
@@ -51,7 +47,7 @@ class LiftTracker(object):
     def count_employees_idle(self):
         return sum([i.count_employees() for i in self._elevators if i.get_state() == Elevator.IDLE])
 
-    def count_lifts_idle(self):
+    def count_lifts_homebound(self):
         return len([i for i in self._elevators if i.get_state() == Elevator.HOMEBOUND])
 
     def accept_employee(self, emp):

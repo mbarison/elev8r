@@ -31,6 +31,7 @@ class Event(object):
         self._verbose = verbose
         self._seconds = (self._end_date - self._start_date).seconds
         self._queue_length = {"ticks": [], "length": []}
+        self._lift_stats = {"ticks": [], "ready": [], "in_transit": [], "idle": [], "homebound": []}
         self._destination = []
         
     def run(self):
@@ -47,18 +48,19 @@ class Event(object):
         tick = 0
         last_q_len = -1
         # don't stop until all employees are at work
+
         while employee_pool.count_employees() + lift_tracker.employees_on_lifts() > 0:
             tick += 1
             
             if self._verbose:
-                print("Tick #%d" % tick)
+                print("Tick #%d Employees left: %d on lifts: %d" % (tick, employee_pool.count_employees(), lift_tracker.employees_on_lifts()))
             
             # store data only if there was a state change
-            if foyer.get_queue_len() != last_q_len:
+            q_len_now = foyer.get_queue_len()+foyer.get_pen_len()
+            if q_len_now != last_q_len:
                 self._queue_length["ticks"].append(tick)
-                self._queue_length["length"].append(foyer.get_queue_len())
-                last_q_len = foyer.get_queue_len()
-            
+                self._queue_length["length"].append(q_len_now)
+                last_q_len = q_len_now
             
         
             foyer.update_tick(tick)
@@ -74,6 +76,13 @@ class Event(object):
                 print("In queue: %s ; In pen: %s" % (foyer.get_queue_ids(), foyer.get_pen_ids()))
 
             lift_tracker.update_tick(tick)
+
+            self._lift_stats["ticks"].append(tick)
+
+            self._lift_stats["ready"].append(lift_tracker.count_lifts_ready())
+            self._lift_stats["in_transit"].append(lift_tracker.count_lifts_transit())
+            self._lift_stats["idle"].append(lift_tracker.count_lifts_idle())
+            self._lift_stats["homebound"].append(lift_tracker.count_lifts_homebound())
 
             # if there are employees waiting and lifts ready, send a new employee
             while foyer.get_pen_len() > 0 and lift_tracker.count_lifts_ready() > 0:
@@ -101,7 +110,7 @@ class Event(object):
         return dfq
     
     def get_lift_stats(self):
-        dfl = pd.DataFrame(self._lift_tracker)
+        dfl = pd.DataFrame(self._lift_stats)
         dfl["run"] = self._run_number
         dfl["hour"]=dfl["ticks"]//3600+1 
         return dfl

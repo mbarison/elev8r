@@ -20,6 +20,7 @@ def main(config):
     verbose    = config.get("verbose", False)
     qstat_f    = config["qstats_f"]
     estat_f    = config["estats_f"]
+    lstat_f    = config["lstats_f"]
     pen_size   = config["pen_size"]
 
     print("Starting %d Runs, %d elevators, pen size: %d" % (n_runs, elevators, pen_size))
@@ -46,8 +47,8 @@ def main(config):
     
     print("%d Runs completed in %s" % (n_runs, str(datetime.now()-t0)))
 
-    #dfl = pd.concat(dfls)    
-    #dfl.to_csv(LIFT_STATS_FILE, index=False)
+    dfl = pd.concat(dfls)    
+    dfl.to_csv(lstat_f, index=False)
     
     dfq = pd.concat(dfqs)
     dfq.to_csv(qstat_f, index=False)
