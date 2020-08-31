@@ -30,6 +30,8 @@ class LiftTracker(object):
             # send tick
             lift.update_tick(tick)
        
+        if self._verbose:
+            self.status_flags()
 
 
     def count_lifts(self):
@@ -81,3 +83,18 @@ class LiftTracker(object):
                 return False
 
         return False
+
+    def status_flags(self):
+
+        def leds(ls, cond):
+            lst = enumerate([[0,1][i.get_state() == cond] for i in ls])
+            bitmap = 0
+            for i,j in lst:
+                bitmap += j<<i
+            return "{0:b}".format(bitmap).zfill(len(self._elevators))
+
+        sl = sorted(self._elevators, key=lambda x: x.get_id())
+        print("Lifts READY      :", leds(sl, Elevator.READY))
+        print("Lifts IDLE       :", leds(sl, Elevator.IDLE))
+        print("Lifts IN_TRANSIT :", leds(sl, Elevator.IN_TRANSIT))
+        print("Lifts HOMEBOUND  :", leds(sl, Elevator.HOMEBOUND))

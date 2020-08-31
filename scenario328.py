@@ -18,18 +18,7 @@ from datetime import datetime
 
 from Agencies import *
 
-# Temp directory (OS dependent)
-tempdir = os.path.join(tempfile.gettempdir(), "Scenario_1_8_8")
-
-if not os.path.exists(tempdir):
-    os.mkdir(tempdir)
-
-config = {"tempdir": tempdir}
-
-# Output files
-config["lstats_f"] = os.path.join(tempdir, "lift_stats.csv")
-config["qstats_f"] = os.path.join(tempdir, "queue_stats.csv")
-config["estats_f"] = os.path.join(tempdir, "employee_stats.csv")
+from base_scenario import get_tempdir
 
 # Start/end dates
 config["start_date"] = datetime(2020, 9, 1, 6, 30)
@@ -51,3 +40,6 @@ config["pen_size"] = 2
 
 # Verbosity
 config["verbose"] = False
+
+# Temp files
+config = get_tempdir(3, config)

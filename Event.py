@@ -54,7 +54,7 @@ class Event(object):
             
             if self._verbose:
                 print("Tick #%d Employees left: %d on lifts: %d" % (tick, employee_pool.count_employees(), lift_tracker.employees_on_lifts()))
-            
+
             # store data only if there was a state change
             q_len_now = foyer.get_queue_len()+foyer.get_pen_len()
             if q_len_now != last_q_len:
@@ -98,9 +98,10 @@ class Event(object):
                self._destination.append(emp)
                         
             # if there's employees waiting, call lift
-            for _ in range(0, foyer.get_pen_len()):
-                if not lift_tracker.call_lift():
-                    break
+            if foyer.get_pen_len() > lift_tracker.count_lifts_homebound():
+                for _ in range(0, foyer.get_pen_len()):
+                    if not lift_tracker.call_lift():
+                        break
                         
                         
     def get_queue_stats(self):

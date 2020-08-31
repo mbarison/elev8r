@@ -30,7 +30,7 @@ from floorplan_scenario_2 import floorplan_2
 config["floorplan"] = floorplan_2
 
 # Number of elevators
-config["elevators"] = 8
+config["elevators"] = 6
 
 # Pen size
 config["pen_size"] = 8
