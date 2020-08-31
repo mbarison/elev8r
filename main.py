@@ -48,7 +48,9 @@ def main(config):
     print("%d Runs completed in %s" % (n_runs, str(datetime.now()-t0)))
 
     dfl = pd.concat(dfls)    
-    dfl.to_csv(lstat_f, index=False)
+    # Average over runs
+    dfl=dfl.groupby("ticks").mean()
+    dfl.to_csv(lstat_f, index=True)
     
     dfq = pd.concat(dfqs)
     dfq.to_csv(qstat_f, index=False)

@@ -61,7 +61,7 @@ class Elevator(object):
             self._floor_q.append(1)
             self._eta_q.append(self.transit_time(1))
             if self._verbose:
-                print("Lift %d called back to 1st floor" % self._id)
+                print("Lift %d called back to 1st floor, ETA: %d" % (self._id, self._eta_q[-1]))
             return True
         else:
             return False
@@ -76,7 +76,7 @@ class Elevator(object):
             self._eta_q.append(self.transit_time(floor))
             assert len(self._employees) <= Elevator.EMPLOYEE_LIMIT
             if self._verbose:
-                print("Lift %d send Employee #%0.4d to floor %d eta: %d" % (self._id, employee.getId(), floor, self._eta_q[0]))
+                print("Lift %d send Employee #%0.4d to floor %d ETA: %d" % (self._id, employee.getId(), floor, self._eta_q[0]))
             return True
         else:
             return False

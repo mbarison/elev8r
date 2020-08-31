@@ -36,6 +36,9 @@ class Event(object):
         
     def run(self):
         employee_pool = EmployeePool(self._floorplan, verbose=self._verbose)
+        
+        employee_initial_count = employee_pool.count_employees()
+        
         foyer = Foyer(self._pen_max)   
         lift_tracker = LiftTracker(elevators=self._n_elevators, verbose=self._verbose) 
         
@@ -47,24 +50,24 @@ class Event(object):
     
         tick = 0
         last_q_len = -1
+
         # don't stop until all employees are at work
 
-        while employee_pool.count_employees() + lift_tracker.employees_on_lifts() > 0:
+        while employee_pool.count_employees() + lift_tracker.employees_on_lifts() + foyer.get_queue_len() + foyer.get_pen_len() > 0:
             tick += 1
             
             if self._verbose:
                 print("Tick #%d Employees left: %d on lifts: %d" % (tick, employee_pool.count_employees(), lift_tracker.employees_on_lifts()))
+
+            foyer.update_tick(tick)
 
             # store data only if there was a state change
             q_len_now = foyer.get_queue_len()+foyer.get_pen_len()
             if q_len_now != last_q_len:
                 self._queue_length["ticks"].append(tick)
                 self._queue_length["length"].append(q_len_now)
-                last_q_len = q_len_now
+            last_q_len = q_len_now
             
-        
-            foyer.update_tick(tick)
-
             # check if there is a new arrival
             if r.get_arrival():
                 
@@ -92,17 +95,24 @@ class Event(object):
                         
             # empty idle lifts
             while lift_tracker.count_employees_idle() > 0:
-               emp = lift_tracker.disembark_employee()
-               assert(emp != None)
-               emp.atWork(tick)
-               self._destination.append(emp)
+                emp = lift_tracker.disembark_employee()
+                assert(emp != None)
+                emp.atWork(tick)
+                self._destination.append(emp)
                         
             # if there's employees waiting, call lift
-            if foyer.get_pen_len() > lift_tracker.count_lifts_homebound():
-                for _ in range(0, foyer.get_pen_len()):
+            to_service = foyer.get_pen_len() - (lift_tracker.count_lifts_homebound() + lift_tracker.count_lifts_ready())
+            if to_service > 0:
+                for _ in range(0, to_service):
                     if not lift_tracker.call_lift():
                         break
                         
+        assert(foyer.get_pen_len() == 0)
+        assert(foyer.get_queue_len() == 0)
+        assert(employee_pool.count_employees() == 0)
+        assert(lift_tracker.employees_on_lifts() == 0)
+        assert(employee_initial_count == len(self._destination))
+        
                         
     def get_queue_stats(self):
         dfq = pd.DataFrame(self._queue_length)
