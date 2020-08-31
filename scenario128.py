@@ -16,6 +16,8 @@ from datetime import datetime
 
 from base_scenario import get_tempdir
 
+config = {}
+
 # Start/end dates
 config["start_date"] = datetime(2020, 9, 1, 6, 30)
 config["end_date"] = datetime(2020, 9, 1, 9, 30)

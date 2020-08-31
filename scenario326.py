@@ -16,9 +16,9 @@ import tempfile, os
 
 from datetime import datetime
 
-from Agencies import *
-
 from base_scenario import get_tempdir
+
+config = {}
 
 # Start/end dates
 config["start_date"] = datetime(2020, 9, 1, 6, 30)
